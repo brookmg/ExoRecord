@@ -1,0 +1,3 @@
+include ':exorecord'
+include ':app'
+rootProject.name = "ExoRecord"
