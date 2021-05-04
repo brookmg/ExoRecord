@@ -1,4 +1,4 @@
-package dev.brookmg.exoplayer
+package dev.brookmg.exorecord.lib
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("dev.brookmg.exoplayer.test", appContext.packageName)
+        assertEquals("dev.brookmg.exorecord.lib.test", appContext.packageName)
     }
 }

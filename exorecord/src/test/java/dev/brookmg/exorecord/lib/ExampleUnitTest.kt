@@ -1,4 +1,4 @@
-package dev.brookmg.exoplayer
+package dev.brookmg.exorecord.lib
 
 import org.junit.Test
 

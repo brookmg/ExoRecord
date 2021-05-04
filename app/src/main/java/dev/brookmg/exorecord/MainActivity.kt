@@ -1,11 +1,108 @@
 package dev.brookmg.exorecord
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.exoplayer2.DefaultRenderersFactory
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.audio.*
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.source.hls.HlsExtractorFactory
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val FORMAT_MP3 = "mp3"
+        const val FORMAT_MP4 = "mp4"
+        const val FORMAT_M3U = "m3u"
+        const val FORMAT_M3U8 = "m3u8"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val streamUrl = "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one?s=1619514803&e=1619529203&h=f378f4ca18759ebfa5fd1d674c794cfc"
+
+        val mainMediaSource: MediaSource
+        val uri = Uri.parse(streamUrl)
+        val lastPath = uri.lastPathSegment
+
+        val bandwidthMeter = DefaultBandwidthMeter.Builder(applicationContext).build()
+        val trackSelectionFactory = AdaptiveTrackSelection.Factory()
+        val httpDataSourceFactory = DefaultHttpDataSourceFactory(
+            "-- Audio Test --",
+            bandwidthMeter,
+            DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
+            DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
+            true
+        )
+
+        val dataSourceFactory = DefaultDataSourceFactory(this, bandwidthMeter, httpDataSourceFactory)
+
+        if (lastPath == null || lastPath.isEmpty()) return
+        mainMediaSource = if (lastPath.contains(FORMAT_M3U8) ||
+            lastPath.contains(FORMAT_M3U)) {
+            HlsMediaSource.Factory(dataSourceFactory)
+                .setAllowChunklessPreparation(true)
+                .setExtractorFactory(HlsExtractorFactory.DEFAULT)
+                .createMediaSource(MediaItem.fromUri(uri))
+        } else {
+            ProgressiveMediaSource.Factory(dataSourceFactory, DefaultExtractorsFactory()).createMediaSource(
+                MediaItem.fromUri(uri)
+            )
+        }
+
+        val renderersFactory = object : DefaultRenderersFactory(this) {
+            override fun buildAudioSink(
+                context: Context, enableFloatOutput: Boolean,
+                enableAudioTrackPlaybackParams: Boolean, enableOffload: Boolean
+            ): AudioSink {
+                return DefaultAudioSink(
+                    AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES,
+                    DefaultAudioSink.DefaultAudioProcessorChain(App.exoRecordInstance.exoRecordProcessor),
+                    enableFloatOutput, enableAudioTrackPlaybackParams, enableOffload
+                )
+            }
+        }
+
+        val trackSelector = DefaultTrackSelector(applicationContext, trackSelectionFactory)
+        val exoPlayer = SimpleExoPlayer.Builder(applicationContext, renderersFactory)
+            .setTrackSelector(trackSelector)
+            .setBandwidthMeter(bandwidthMeter)
+            .build()
+
+        exoPlayer.setMediaSource(mainMediaSource)
+        exoPlayer.prepare()
+
+        findViewById<Button>(R.id.button).setOnClickListener { exoPlayer.playWhenReady = true }
+        findViewById<Button>(R.id.button2).setOnClickListener { exoPlayer.stop() }
+
+        findViewById<Button>(R.id.button_rec).setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                App.exoRecordInstance.startRecording()
+            }
+        }
+
+        findViewById<Button>(R.id.button_rec_stop).setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                Log.e("CONVERSION", App.exoRecordInstance.stopRecording(true).toString())
+            }
+        }
     }
 }
