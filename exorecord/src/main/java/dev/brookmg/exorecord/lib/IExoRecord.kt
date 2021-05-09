@@ -2,10 +2,10 @@ package dev.brookmg.exorecord.lib
 
 interface IExoRecord {
 
-    data class Record(val filePath: String, val sampleBitRate: Int, val bytePerFrame: Int,
-                      val channelCount: Int, val aacFilePath: String? = null)
+    data class Record(val filePath: String, val sampleBitRate: Int, val bitRate: Int,
+                      val channelCount: Int)
 
-    suspend fun startRecording()
-    suspend fun stopRecording(saveAsAAC: Boolean = false) : Record
+    suspend fun startRecording() : String
+    suspend fun stopRecording() : Record
 
 }

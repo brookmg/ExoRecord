@@ -23,7 +23,7 @@ class ExoRecordProcessor internal constructor(private val applicationContext: Co
 
     private var inputEnded: Boolean = false
     private var wavFile: WavFile? = null
-    private var filePath: String = ""
+    private var fileName: String = ""
 
     init {
         outputBuffer = AudioProcessor.EMPTY_BUFFER
@@ -114,19 +114,20 @@ class ExoRecordProcessor internal constructor(private val applicationContext: Co
         }
     }
 
-    override suspend fun startRecording() {
+    override suspend fun startRecording() : String {
         stopRecording()
-        filePath = "radio-${System.nanoTime()}.wav"
-        wavFile = WavFile(applicationContext = applicationContext, filePath)
+        fileName = "radio-${System.nanoTime()}.wav"
+        wavFile = WavFile(applicationContext = applicationContext, fileName)
         wavFile?.writeHeaders(sampleRateHz, bytePerFrame, channelCount)
         isActive = true
+        return fileName
     }
 
-    override suspend fun stopRecording(saveAsAAC: Boolean): IExoRecord.Record {
+    override suspend fun stopRecording(): IExoRecord.Record {
         isActive = false
-        val aac = wavFile?.save(saveAsAAC = saveAsAAC)
+        val wav = wavFile?.save()
         wavFile = null
-        return IExoRecord.Record(filePath, sampleRateHz, bytePerFrame, channelCount, aacFilePath = aac)
+        return IExoRecord.Record(fileName, sampleRateHz, bytePerFrame, channelCount)
     }
 
 }

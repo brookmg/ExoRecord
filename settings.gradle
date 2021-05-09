@@ -1,3 +1,4 @@
 include ':exorecord'
 include ':app'
 rootProject.name = "ExoRecord"
+include ':exorecordogg'

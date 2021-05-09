@@ -4,14 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.google.android.exoplayer2.Format.NO_VALUE
 import dev.brookmg.exorecord.lib.Util.toByteArray
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.DataOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.RandomAccessFile
+import java.io.*
 
 class WavFile(
     private val applicationContext: Context, private val fileName: String,
@@ -53,16 +48,16 @@ class WavFile(
         fileOutputStream.write(2.toShort().toByteArray(2), 0, 2) // 22 - 24 - mono or stereo? 1 or 2?  (or 5 or ???)
 
         // THE CHAOS
-        fileOutputStream.writeInt(Integer.reverseBytes(sampleRateHz / 2)) // 24 - 28 - samples per second (numbers per second)
-        fileOutputStream.writeInt(Integer.reverseBytes(((sampleRateHz / 2) * bytePerFrame * channelCount))) // 28 - 32 - bytes per second
+        fileOutputStream.writeInt(Integer.reverseBytes(sampleRateHz)) // 24 - 28 - samples per second (numbers per second)
+        fileOutputStream.writeInt(Integer.reverseBytes(((sampleRateHz) * bytePerFrame ))) // 28 - 32 - bytes per second
         fileOutputStream.write((bytePerFrame * channelCount).toShort().toByteArray(2), 0, 2) // 32 - 34 - # of bytes in one sample, for all channels
-        fileOutputStream.write((bytePerFrame * 8).toShort().toByteArray(2), 0, 2) // 34 - 36 // - how many bits in a sample(number)?  usually 16 or 24
+        fileOutputStream.write((bytePerFrame * 8 / channelCount).toShort().toByteArray(2), 0, 2) // 34 - 36 // - how many bits in a sample(number)?  usually 16 or 24
 
         fileOutputStream.write("data".toByteArray()) // 36 40 - data
         fileOutputStream.writeInt(Integer.reverseBytes(audioArray.size))
     }
 
-    suspend fun save(saveAsAAC: Boolean = false) : String? = withContext(Dispatchers.IO){
+    suspend fun save() : String? = withContext(Dispatchers.IO){
         try {
 
             // Change the wav content size
@@ -70,21 +65,15 @@ class WavFile(
             fileOutputStream.close()
 
             val randomAccessFile = RandomAccessFile(applicationContext.filesDir.absolutePath + File.separator + fileName, "rw")
-            randomAccessFile.seek(40)
-            randomAccessFile.write(Integer.reverseBytes(fileOutputStream.size() - 40).toByteArray(4), 0, 4)
+            
             randomAccessFile.seek(4)
-            randomAccessFile.write(Integer.reverseBytes(fileOutputStream.size() - 8).toByteArray(4), 0, 4)
-
+            randomAccessFile.write((fileOutputStream.size() - 8).toByteArray(4), 0, 4)
+            randomAccessFile.seek(40)
+            randomAccessFile.write((fileOutputStream.size() - 40).toByteArray(4), 0, 4)
+            randomAccessFile.close()
             audioArray.clear()
 
-            if (saveAsAAC && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                return@withContext WavToAAC().convertWavToAAC(applicationContext, fileName,
-                        samplingRate = currentSampleRateHZ,
-                        audioBitRate = (currentSampleRateHZ) * currentBytePerFrame * currentChannelCount,
-                        channelCount = currentChannelCount) { progress ->
-                    Log.v("WaveToAAC" , "Working @ $progress%")
-                }
-            }
+            return@withContext fileName
 
         } catch (e: Exception) {
             e.printStackTrace()
