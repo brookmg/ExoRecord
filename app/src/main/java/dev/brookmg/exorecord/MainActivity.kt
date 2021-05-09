@@ -5,7 +5,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.RadioButton
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isGone
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -21,9 +25,14 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
+import dev.brookmg.exorecord.lib.ExoRecord
+import dev.brookmg.exorecord.lib.IExoRecord
+import dev.brookmg.exorecordogg.ExoRecordOgg
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,9 +43,31 @@ class MainActivity : AppCompatActivity() {
         const val FORMAT_M3U8 = "m3u8"
     }
 
+    private lateinit var startRadioButton: Button
+    private lateinit var stopRadioButton: Button
+
+    private lateinit var startRecordingButton: Button
+    private lateinit var stopRecordingButton: Button
+
+    private val exoRecordListener = object: ExoRecord.ExoRecordListener {
+        override fun onStartRecording(recordFileName: String) {
+            startRecordingButton.isGone = true
+            stopRecordingButton.isGone = false
+        }
+
+        override fun onStopRecording(record: IExoRecord.Record) {
+            startRecordingButton.isGone = false
+            stopRecordingButton.isGone = true
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        startRecordingButton = findViewById(R.id.button_rec)
+        stopRecordingButton = findViewById(R.id.button_rec_stop)
+
         val streamUrl = "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one?s=1619514803&e=1619529203&h=f378f4ca18759ebfa5fd1d674c794cfc"
 
         val mainMediaSource: MediaSource
@@ -89,20 +120,46 @@ class MainActivity : AppCompatActivity() {
 
         exoPlayer.setMediaSource(mainMediaSource)
         exoPlayer.prepare()
+        App.exoRecordInstance.addExoRecordListener("ዋና", exoRecordListener)
 
         findViewById<Button>(R.id.button).setOnClickListener { exoPlayer.playWhenReady = true }
         findViewById<Button>(R.id.button2).setOnClickListener { exoPlayer.stop() }
 
-        findViewById<Button>(R.id.button_rec).setOnClickListener {
+        startRecordingButton.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 App.exoRecordInstance.startRecording()
             }
         }
 
-        findViewById<Button>(R.id.button_rec_stop).setOnClickListener {
+        stopRecordingButton.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                Log.e("CONVERSION", App.exoRecordInstance.stopRecording(true).toString())
+                val wavFilePath = App.exoRecordInstance.stopRecording()
+                Log.e("WavFile", wavFilePath.toString())
+
+                val progressBarTextView = findViewById<TextView>(R.id.converting_progress_bar_text)
+                val progressBar = findViewById<ProgressBar>(R.id.converting_progress_bar)
+
+                progressBarTextView.text = "Converting to OGG"
+
+                withContext(Dispatchers.IO) {
+                    ExoRecordOgg.convertFile(
+                        applicationContext = App.instance,
+                        fileName = wavFilePath.filePath,
+                        sampleRate = wavFilePath.sampleBitRate,
+                        channels = wavFilePath.channelCount,
+                        quality = 1f,
+                    ) { progressBar.progress = it.roundToInt() }
+                    withContext(Dispatchers.Main) {
+                        progressBarTextView.text = "Conversion Done"
+                    }
+                }
+
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        App.exoRecordInstance.removeExoRecordListener("ዋና")
     }
 }

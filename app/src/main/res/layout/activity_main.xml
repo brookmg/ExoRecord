@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:text="@string/exorecord_nothing"
         android:padding="16dp"
+        app:layout_constraintVertical_bias="0.2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -42,30 +43,56 @@
         tools:layout_editor_absoluteX="169dp"
         tools:layout_editor_absoluteY="509dp" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/button_rec"
         android:layout_marginTop="16dp"
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         app:backgroundTint="#a00000"
         app:layout_constraintTop_toBottomOf="@+id/button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button2"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/white"
         android:text="@string/start_recording"
         tools:layout_editor_absoluteX="203dp"
         tools:layout_editor_absoluteY="412dp" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/button_rec_stop"
         android:layout_marginTop="16dp"
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         app:backgroundTint="#a00000"
-        app:layout_constraintTop_toBottomOf="@+id/button"
-        app:layout_constraintStart_toEndOf="@+id/button"
+        android:textColor="@color/white"
+        app:layout_constraintTop_toBottomOf="@+id/button_rec"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:text="@string/stop_recording"
         tools:layout_editor_absoluteX="169dp"
         tools:layout_editor_absoluteY="509dp" />
+
+    <TextView
+        android:id="@+id/converting_progress_bar_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_rec_stop"
+        android:padding="16dp"
+        android:text="Converting"
+        android:textSize="18sp"
+        android:textColor="?colorOnSurface"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ProgressBar
+        android:id="@+id/converting_progress_bar"
+        app:layout_constraintTop_toBottomOf="@+id/converting_progress_bar_text"
+        android:padding="16dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:max="100"
+        android:indeterminate="false"
+        android:progress="0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
