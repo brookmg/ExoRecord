@@ -1,6 +1,8 @@
 package dev.brookmg.exorecord.lib
 
 import android.app.Application
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * It's wise to pass the application context here
@@ -15,16 +17,22 @@ class ExoRecord(private val application: Application) : IExoRecord{
         fun onStopRecording(record: IExoRecord.Record)
     }
 
-    override suspend fun startRecording() : String {
+    override suspend fun startRecording(): String = withContext(Dispatchers.IO) {
         val fileName = exoRecordProcessor.startRecording()
-        for (listener in _listeners.values) listener.onStartRecording(fileName)
-        return fileName
+        withContext(Dispatchers.Main) {
+            for (listener in _listeners.values)
+                listener.onStartRecording(fileName)
+        }
+        return@withContext fileName
     }
 
-    override suspend fun stopRecording(): IExoRecord.Record {
+    override suspend fun stopRecording(): IExoRecord.Record = withContext(Dispatchers.IO){
         val record = exoRecordProcessor.stopRecording()
-        for (listener in _listeners.values) listener.onStopRecording(record)
-        return record
+        withContext(Dispatchers.Main) {
+            for (listener in _listeners.values)
+                listener.onStopRecording(record)
+        }
+        return@withContext record
     }
 
     fun addExoRecordListener(tag: String, listener: ExoRecordListener) : Boolean {
@@ -35,12 +43,11 @@ class ExoRecord(private val application: Application) : IExoRecord{
 
     fun clearListeners() = _listeners.clear()
 
-    fun removeExoRecordListener(tag: String) : Boolean{
+    fun removeExoRecordListener(tag: String) : Boolean {
         return if (_listeners.containsKey(tag)) {
             _listeners.remove(tag)
             true
-        }
-        else false
+        } else false
     }
 
     fun removeExoRecordListener(listener: ExoRecordListener) : Boolean {

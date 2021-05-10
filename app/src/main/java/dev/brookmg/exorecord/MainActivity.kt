@@ -149,11 +149,9 @@ class MainActivity : AppCompatActivity() {
                         channels = wavFilePath.channelCount,
                         quality = 1f,
                     ) { progressBar.progress = it.roundToInt() }
-                    withContext(Dispatchers.Main) {
-                        progressBarTextView.text = "Conversion Done"
-                    }
                 }
 
+                progressBarTextView.text = "Conversion Done"
             }
         }
     }
