@@ -1,14 +1,13 @@
 <p align="center">
-	<img src="https://github.com/brookmg/ExoRecord/blob/master/exorecord.svg?raw=true" alt="ExoPlayer" /><br>
+	<img src="https://github.com/brookmg/ExoRecord/blob/master/exorecord.svg?raw=true" width=250 height=250 alt="ExoPlayer" /><br>
 	<h1 align="center"> ExoRecord </h1>
 	<p align="center">
 		<a href="https://jitpack.io/#brookmg/ExoRecord"><img src="https://jitpack.io/v/brookmg/exorecord.svg" alt="Current Version" /></a>
-		<a href="https://circleci.com/gh/brookmg/ExoRecord/tree/master"><img src="https://circleci.com/gh/brookmg/ExoRecord/tree/master.svg?style=svg" alt="CircleCI" /></a>
-		<a href="https://app.codacy.com/app/brookmg/ExoRecord?utm_source=github.com&utm_medium=referral&utm_content=brookmg/ExoRecord&utm_campaign=Badge_Grade_Dashboard"><img src="https://api.codacy.com/project/badge/Grade/9a865b7dc8124bed9d1476e6ed331a2a" alt="Codacy Badge" /></a></p><h4 align="center"> An Android library to record audio stream played by Exoplayer </h4></p>
+		<a href="https://www.codacy.com/gh/brookmg/ExoRecord/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=brookmg/ExoRecord&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/ed0db5bf7dc74c018d6e209da782629d" alt="Codacy Badge" /></a></p><h4 align="center"> An Android library to record audio stream played by Exoplayer </h4></p>
 
 #### Works on top of [ExoPlayer](https://exoplayer.dev)
 
-Because this library uses coroutine, it currently supports only kotlin. Make sure your app is 
+Because this library uses coroutine, it currently only supports [Kotlin](https://kotlinlang.org). Make sure your app is 
 implementing the latest coroutine library:
 
  ```gradle 
@@ -117,7 +116,8 @@ the steaming feed that's going to be played.
 
 Even though storing audio recording in a raw wave format might conserve the true quality and bitrate of the original stream, 
 it's not truly efficient for normal consumption. ExoRecord provides optional modules for converting these wave files into other
-encoding.
+encoding. Be sure to use the latest distribution method from google ( [App bundles](https://developer.android.com/platform/technology/app-bundle) ) 
+to avoid huge size gains on your application if you use this method. Split apk distribution can also be applied 
 
 ### ExoRecordOGG
 This module can convert any wave file into ogg file format. 
