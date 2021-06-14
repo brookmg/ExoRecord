@@ -1,7 +1,6 @@
 package dev.brookmg.exorecord.lib
 
 import android.content.Context
-import android.util.Log
 import com.google.android.exoplayer2.Format.NO_VALUE
 import dev.brookmg.exorecord.lib.Util.toByteArray
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +49,7 @@ class WavFile(
         // THE CHAOS
         fileOutputStream.writeInt(Integer.reverseBytes(sampleRateHz)) // 24 - 28 - samples per second (numbers per second)
         fileOutputStream.writeInt(Integer.reverseBytes(((sampleRateHz) * bytePerFrame ))) // 28 - 32 - bytes per second
-        fileOutputStream.write((bytePerFrame * channelCount).toShort().toByteArray(2), 0, 2) // 32 - 34 - # of bytes in one sample, for all channels
+        fileOutputStream.write((bytePerFrame).toShort().toByteArray(2), 0, 2) // 32 - 34 - # of bytes in one sample, for all channels
         fileOutputStream.write((bytePerFrame * 8 / channelCount).toShort().toByteArray(2), 0, 2) // 34 - 36 // - how many bits in a sample(number)?  usually 16 or 24
 
         fileOutputStream.write("data".toByteArray()) // 36 40 - data
