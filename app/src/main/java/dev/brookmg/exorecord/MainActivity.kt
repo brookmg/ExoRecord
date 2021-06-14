@@ -6,14 +6,15 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ProgressBar
-import android.widget.RadioButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.audio.*
+import com.google.android.exoplayer2.audio.AudioCapabilities
+import com.google.android.exoplayer2.audio.AudioSink
+import com.google.android.exoplayer2.audio.DefaultAudioSink
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -100,14 +101,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         val renderersFactory = object : DefaultRenderersFactory(this) {
-            override fun buildAudioSink(
+                        override fun buildAudioSink(
                 context: Context, enableFloatOutput: Boolean,
                 enableAudioTrackPlaybackParams: Boolean, enableOffload: Boolean
             ): AudioSink {
                 return DefaultAudioSink(
                     AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES,
                     DefaultAudioSink.DefaultAudioProcessorChain(App.exoRecordInstance.exoRecordProcessor),
-                    enableFloatOutput, enableAudioTrackPlaybackParams, enableOffload
+                    enableFloatOutput, enableAudioTrackPlaybackParams,
+                    if (enableOffload) DefaultAudioSink.OFFLOAD_MODE_ENABLED_GAPLESS_REQUIRED
+                    else DefaultAudioSink.OFFLOAD_MODE_DISABLED
                 )
             }
         }
