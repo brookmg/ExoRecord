@@ -57,13 +57,14 @@ class WavFile(
     }
 
     suspend fun save() : String? = withContext(Dispatchers.IO){
+        var randomAccessFile: RandomAccessFile? = null
         try {
 
             // Change the wav content size
             fileOutputStream.write(audioArray.toByteArray())
             fileOutputStream.close()
 
-            val randomAccessFile = RandomAccessFile(applicationContext.filesDir.absolutePath + File.separator + fileName, "rw")
+            randomAccessFile = RandomAccessFile(applicationContext.filesDir.absolutePath + File.separator + fileName, "rw")
             
             randomAccessFile.seek(4)
             randomAccessFile.write((fileOutputStream.size() - 8).toByteArray(4), 0, 4)
@@ -76,7 +77,11 @@ class WavFile(
 
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            fileOutputStream.close()
+            randomAccessFile?.close()
         }
+
         return@withContext null
     }
 

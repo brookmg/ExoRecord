@@ -19,6 +19,10 @@ class ExoRecordOgg {
         ) : Record {
             val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+            if (sampleRate <= 0) throw IllegalArgumentException("Sample rate should be greater than 0")
+            if (channels <= 0) throw IllegalArgumentException("Channel count should be greater than 0")
+            if (quality <= 0 || quality > 1) throw IllegalArgumentException("Quality should be greater than 0 and less than or equal to 1")
+
             val oggFilePath: String = applicationContext.filesDir.absolutePath.toString() + "/" + fileName.split('.')[0] + ".ogg"
             val vorbis = VorbisFileOutputStream(
                 oggFilePath,
